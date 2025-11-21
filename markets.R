@@ -8,7 +8,7 @@ read_delim_cc <- function(file) {
   read_delim(file, col_types = "cccccdd")
 }
 
-url <- "https://kolkostruva.bg/opendata_files/2025-11-19.zip"
+url <- "https://kolkostruva.bg/opendata_files/2025-11-20.zip"
 destfile <- tempfile(pattern = 'markets', tmpdir = tempdir(), fileext = '.zip')
 download.file(url, destfile, quiet = T)
 zip <- dir_ls(tempdir(), glob = "*.zip")
@@ -30,7 +30,7 @@ markets <- map(files, read_delim_cc) %>%
   mutate(cena_v_promocia = as.character(cena_v_promocia),
          cena_v_promocia = str_replace(cena_v_promocia, "NaN", ""),
          naimenovanie_na_produkta = reorder_within(naimenovanie_na_produkta, cena_na_drebno, market),
-         date = "2025-11-19", .before = everything())
+         date = "2025-11-20", .before = everything())
 
 df_markets <- read_parquet("markets/df_markets.parquet")
 df_markets <- bind_rows(df_markets, markets)
@@ -41,7 +41,7 @@ glimpse(df_markets)
 df_markets %>% count(date)
 
 df_markets %>% 
-  filter(date == "2025-11-19", str_detect(naimenovanie_na_produkta, regex("ябълки", ignore_case = T))) %>%
+  filter(date == "2025-11-20", str_detect(naimenovanie_na_produkta, regex("ябълки", ignore_case = T))) %>%
   ggplot(aes(cena_na_drebno, naimenovanie_na_produkta, fill = market)) +
   geom_col(show.legend = F) +
   geom_richtext(aes(label = glue::glue("{cena_na_drebno};  <span style='color:red'>{cena_v_promocia}</span>")), 
@@ -56,12 +56,12 @@ df_markets %>%
   mutate(naimenovanie_na_produkta = str_remove(naimenovanie_na_produkta, "___.+$"),
          date = ymd(date), cena_v_promocia = parse_number(cena_v_promocia)) %>% 
   filter(str_detect(naimenovanie_na_produkta, regex("кренвирш", ignore_case = T)),
-         market == "Вилтон") %>%
+         market == "Кауфланд") %>%
   pivot_longer(6:7) %>%
   ggplot(aes(date, value, group = name, color = name)) +
   geom_point() +
   geom_line() +
-  scale_x_date(date_breaks = "3 days", date_labels = "%b-%d") +
+  scale_x_date(date_breaks = "5 days", date_labels = "%b-%d") +
   scale_color_manual(values = c("gray50", "red"), labels = c("Цена на дребно", "Цена в промоция")) +
   theme(text = element_text(size = 16), legend.position = "top") +
   labs(y = "Цена (лв)", x = "Дата", color = "Легенда:") +
