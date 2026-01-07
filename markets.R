@@ -8,7 +8,7 @@ read_delim_cc <- function(file) {
   read_delim(file, col_types = "cccccdd")
 }
 
-url <- "https://kolkostruva.bg/opendata_files/2025-12-27.zip"
+url <- "https://kolkostruva.bg/opendata_files/2026-01-06.zip"
 destfile <- tempfile(pattern = 'markets', tmpdir = tempdir(), fileext = '.zip')
 download.file(url, destfile, quiet = T)
 zip <- dir_ls(tempdir(), glob = "*.zip")
@@ -29,21 +29,22 @@ markets <- map(files, read_delim_cc) %>%
                   kategoria, naimenovanie_na_produkta)) %>%
   mutate(cena_v_promocia = as.character(cena_v_promocia),
          cena_v_promocia = str_replace(cena_v_promocia, "NaN", ""),
+         cena_v_promocia = parse_number(cena_v_promocia),
          naimenovanie_na_produkta = reorder_within(
            naimenovanie_na_produkta, cena_na_drebno, market),
-         date = "2025-12-27", .before = everything())
+         date = "2026-01-06", .before = everything())
 
-df_markets <- read_parquet("markets/df_markets.parquet")
+df_markets <- read_parquet("markets/df_markets_2026.parquet")
 df_markets <- bind_rows(df_markets, markets)
 
 glimpse(df_markets)
 df_markets %>% count(date) %>% print(n = Inf)
 
-write_parquet(df_markets, "markets/df_markets.parquet")
-write_parquet(df_markets, "shiny/markets/df_markets.parquet")
+write_parquet(df_markets, "markets/df_markets_2026.parquet")
+write_parquet(df_markets, "shiny/markets/df_markets_2026.parquet")
 
 df_markets %>% 
-  filter(date == "2025-12-20", 
+  filter(date == "2026-01-01", 
          str_detect(naimenovanie_na_produkta, 
          regex("^(?=.*ябълки)(?=.*кг).*$", ignore_case = T))) %>%
   ggplot(aes(cena_na_drebno, naimenovanie_na_produkta, fill = market)) +
@@ -52,14 +53,14 @@ df_markets %>%
                 position = position_dodge(width = 1), hjust = -0.01, size = 4.5, fill = NA, label.colour = NA) +
   scale_y_reordered() +
   scale_x_continuous(expand = expansion(mult = c(.05, .7))) +
-  labs(x = "Цена (лв); <span style='color:red'>Промоция (лв)</span>", y = NULL) +
+  labs(x = "Цена (евро); <span style='color:red'>Промоция (евро)</span>", y = NULL) +
   theme(text = element_text(size = 14), axis.title.x = element_markdown()) +
   facet_wrap(vars(market), scales = "free_y")
 
 df_markets %>%
   mutate(naimenovanie_na_produkta = str_remove(naimenovanie_na_produkta, "___.+$"),
-         date = ymd(date), cena_v_promocia = parse_number(cena_v_promocia)) %>% 
-  filter(str_detect(naimenovanie_na_produkta, 
+         date = ymd(date)) %>% 
+  filter(str_detect(naimenovanie_na_produkta,
                     regex("^(?=.*ябълки)(?=.*)(?=.*кг).*$", ignore_case = T))) %>%
   pivot_longer(6:7) %>% drop_na(value) %>%
   mutate(market = glue::glue(" <span style='color:blue'>**{market}**</span>")) %>% 
@@ -72,17 +73,17 @@ df_markets %>%
                      labels = c("Цена на дребно", "Цена в промоция")) +
   theme(text = element_text(size = 14), legend.position = "top",
         strip.text = element_markdown()) +
-  labs(y = "Цена (лв)", x = "Дата", color = "Легенда:") +
+  labs(y = "Цена (евро)", x = "Дата", color = "Легенда:") +
   facet_wrap(vars(market_product))
 
 colors_percent <- c("TRUE" = "#00BFC4", "FALSE" = "#F8766D")
 df_markets %>%
   mutate(naimenovanie_na_produkta = str_remove(naimenovanie_na_produkta, "___.+$")) %>% 
   #summarise(cena_na_drebno = mean(cena_na_drebno, na.rm = T), .by = c(market, date)) %>% 
-  filter(date %in% c("2025-12-16", "2025-12-17"), !cena_na_drebno == 0) %>%
+  filter(date %in% c("2026-01-01", "2026-01-03"), !cena_na_drebno == 0) %>%
   summarise(
-    price_change = (last(cena_na_drebno, na_rm = T) - first(
-      cena_na_drebno, na_rm = T)) / first(cena_na_drebno, na_rm = T) * 100,
+    price_change = (last(cena_na_drebno) - first(
+      cena_na_drebno)) / first(cena_na_drebno) * 100,
     .by = c(market, naimenovanie_na_produkta)) %>%
   filter(price_change != 0) %>%
   mutate(naimenovanie_na_produkta = fct_reorder(
@@ -101,12 +102,12 @@ df_markets %>%
 
 df_markets %>% filter(kategoria %in% c(29)) %>% view
 df_markets %>%
-  filter(date %in% c("2025-11-17", "2025-12-17"), !cena_na_drebno == 0) %>%
+  filter(date %in% c("2026-01-01", "2026-01-03"), !cena_na_drebno == 0) %>%
   #filter(kategoria %in% c(25:28)) %>% 
   summarise(cena_na_drebno = mean(cena_na_drebno, na.rm = T), .by = c(market, date)) %>% 
   summarise(
-    price_change = (last(cena_na_drebno, na_rm = T) - first(
-      cena_na_drebno, na_rm = T)) / first(cena_na_drebno, na_rm = T) * 100,
+    price_change = (last(cena_na_drebno) - first(
+      cena_na_drebno)) / first(cena_na_drebno) * 100,
     .by = c(market)) %>%
   filter(price_change != 0) %>%
   mutate(market = fct_reorder(market, price_change), col = price_change > 0) %>% 
@@ -138,6 +139,6 @@ df_markets %>%
   scale_color_manual(values = c("black", "red"), 
                      labels = c("Цена на дребно", "Цена в промоция")) +
   scale_x_date(date_breaks = "20 days", date_labels = "%b-%d") +
-  labs(y = "Средна цена (лв)", x = "Дата", color = "Легенда:") +
+  labs(y = "Средна цена (евро)", x = "Дата", color = "Легенда:") +
   theme(text = element_text(size = 14), legend.position = "top") +
   facet_wrap(vars(market), nrow = 1)
