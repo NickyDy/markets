@@ -8,7 +8,7 @@ read_delim_cc <- function(file) {
   read_delim(file, col_types = "cccccdd")
 }
 
-url <- "https://kolkostruva.bg/opendata_files/2026-01-14.zip"
+url <- paste0("https://kolkostruva.bg/opendata_files/", Sys.Date() - 1, ".zip")
 destfile <- tempfile(pattern = 'markets', tmpdir = tempdir(), fileext = '.zip')
 download.file(url, destfile, quiet = T)
 zip <- dir_ls(tempdir(), glob = "*.zip")
@@ -32,7 +32,7 @@ markets <- map(files, read_delim_cc) %>%
          cena_v_promocia = parse_number(cena_v_promocia),
          naimenovanie_na_produkta = reorder_within(
            naimenovanie_na_produkta, cena_na_drebno, market),
-         date = "2026-01-14", .before = everything())
+         date = as.character(Sys.Date() - 1), .before = everything())
 
 df_markets <- read_parquet("markets/df_markets_2026.parquet")
 df_markets <- bind_rows(df_markets, markets)
