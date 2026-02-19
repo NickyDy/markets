@@ -21,8 +21,8 @@ markets <- map(files, read_delim_cc) %>%
   bind_rows() %>% distinct() %>% janitor::clean_names() %>%
   mutate(market = str_extract(market, "Кауфланд|Лидл|T Market|Билла|Вилтон|Славекс")) %>% 
   mutate(cena_v_promocia = na_if(cena_v_promocia, 0)) %>% 
-  filter(naseleno_masto == 87374,
-         !str_detect(naimenovanie_na_produkta, "^Krina;")) %>% 
+  filter(naseleno_masto == 87374) %>% 
+  filter_out(str_detect(naimenovanie_na_produkta, "^Krina;")) %>% 
   reframe(cena_na_drebno = round(mean(cena_na_drebno, na.rm = T), 2),
           cena_v_promocia = round(mean(cena_v_promocia, na.rm = T), 2),
           .by = c(market, kod_na_produkta, 
@@ -34,13 +34,12 @@ markets <- map(files, read_delim_cc) %>%
            naimenovanie_na_produkta, cena_na_drebno, market),
          date = as.character(Sys.Date() - 1), .before = everything())
 
-df_markets <- read_parquet("markets/df_markets_2026.parquet")
+df_markets <- read_parquet("shiny/markets/df_markets_2026.parquet")
 df_markets <- bind_rows(df_markets, markets)
 
 glimpse(df_markets)
 df_markets %>% count(date) %>% print(n = Inf)
 
-write_parquet(df_markets, "markets/df_markets_2026.parquet")
 write_parquet(df_markets, "shiny/markets/df_markets_2026.parquet")
 
 df_markets %>% 
