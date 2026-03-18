@@ -37,7 +37,6 @@ markets <- map(files, read_delim_cc) %>%
 df_markets <- read_parquet("shiny/markets/df_markets_2026.parquet")
 df_markets <- bind_rows(df_markets, markets)
 
-glimpse(df_markets)
 df_markets %>% count(date) %>% print(n = Inf)
 
 write_parquet(df_markets, "shiny/markets/df_markets_2026.parquet")
