@@ -41,11 +41,14 @@ df_markets %>% count(date) %>% print(n = Inf)
 
 write_parquet(df_markets, "shiny/markets/df_markets_2026.parquet")
 
+glimpse(df_markets)
+
 df_markets %>% 
-  filter(date == "2026-01-01", 
+  filter(date == "2026-05-14", 
          str_detect(naimenovanie_na_produkta, 
          regex("^(?=.*ябълки)(?=.*кг).*$", ignore_case = T))) %>%
-  ggplot(aes(cena_na_drebno, naimenovanie_na_produkta, fill = market)) +
+  mutate(cena_v_promocia = if_else(is.na(cena_v_promocia), "", as.character(cena_v_promocia))) %>% 
+  ggplot(aes(cena_na_drebno, reorder_within(naimenovanie_na_produkta, cena_na_drebno, market), fill = market)) +
   geom_col(show.legend = F) +
   geom_richtext(aes(label = glue::glue("{cena_na_drebno};  <span style='color:red'>{cena_v_promocia}</span>")), 
                 position = position_dodge(width = 1), hjust = -0.01, size = 4.5, fill = NA, label.colour = NA) +
@@ -57,7 +60,7 @@ df_markets %>%
 
 df_markets %>%
   mutate(naimenovanie_na_produkta = str_remove(naimenovanie_na_produkta, "___.+$"),
-         date = ymd(date)) %>% 
+         date = ymd(date)) %>%
   filter(str_detect(naimenovanie_na_produkta,
                     regex("^(?=.*ябълки)(?=.*)(?=.*кг).*$", ignore_case = T))) %>%
   pivot_longer(6:7) %>% drop_na(value) %>%
