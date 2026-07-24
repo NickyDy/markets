@@ -2,7 +2,7 @@ library(tidyverse)
 library(tabulapdf)
 library(nanoparquet)
 
-link <- "https://www.dksbt.bg/doc/%D0%A1%D0%B5%D0%B4%D0%BC%D0%B8%D1%87%D0%B5%D0%BD%20%D0%B1%D1%8E%D0%BB%D0%B5%D1%82%D0%B8%D0%BD%20%2001%20%20-%2005%20%D1%8E%D0%BD%D0%B8%20NEW%202026_signed.pdf"
+link <- "https://www.dksbt.bg/doc/%D0%A1%D0%B5%D0%B4%D0%BC%D0%B8%D1%87%D0%B5%D0%BD%20%D0%B1%D1%8E%D0%BB%D0%B5%D1%82%D0%B8%D0%BD%20%2013%20%20-%2017%20%D1%8E%D0%BB%D0%B8%20NEW%202026.pdf"
 
 table <- extract_tables(link, col_names = F, method = "stream", pages = 1, output = "tibble") %>% pluck(1) %>% 
   drop_na() %>% 
@@ -12,11 +12,11 @@ table <- extract_tables(link, col_names = F, method = "stream", pages = 1, outpu
   separate_wider_delim(cols = X12, names = c("X12", "X12_1"), delim = " ") %>%
   separate_wider_delim(cols = X10, names = c("X10", "X10_1"), delim = " ") %>%
   select(product = X1, unit = X2, 
-         "2026-06-01" = X4, 
-         "2026-06-02" = X6, 
-         "2026-06-03" = X8, 
-         "2026-06-04" = X9, 
-         "2026-06-05" = X11
+         "2026-07-13" = X4, 
+         "2026-07-14" = X6, 
+         "2026-07-15" = X8, 
+         "2026-07-16" = X9, 
+         "2026-07-17" = X11
          ) %>% 
   mutate(product = fct_recode(product, 'Брашно тип "500" /пакет 1 кг/' = "/пакет 1 кг/",
                               "Колбаси малотрайни /в т.ч. шунка/" = "малотрайни /в т.ч. шунка/",
