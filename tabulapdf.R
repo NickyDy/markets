@@ -2,21 +2,21 @@ library(tidyverse)
 library(tabulapdf)
 library(nanoparquet)
 
-link <- "https://www.dksbt.bg/doc/%D0%A1%D0%B5%D0%B4%D0%BC%D0%B8%D1%87%D0%B5%D0%BD%20%D0%B1%D1%8E%D0%BB%D0%B5%D1%82%D0%B8%D0%BD%20%2003%20%20-%2007%20%D0%B0%D0%B2%D0%B3%D1%83%D1%81%D1%82%20NEW%202026.pdf"
+link <- "https://www.dksbt.bg/doc/%D0%A1%D0%B5%D0%B4%D0%BC%D0%B8%D1%87%D0%B5%D0%BD%20%D0%B1%D1%8E%D0%BB%D0%B5%D1%82%D0%B8%D0%BD%20%2024%20%20-%2028%20%D0%B0%D0%B2%D0%B3%D1%83%D1%81%D1%82%20-2026.pdf"
 
 table <- extract_tables(link, col_names = F, method = "stream", pages = 1, output = "tibble") %>% pluck(1) %>% 
   drop_na() %>% 
   separate_wider_delim(cols = X5, names = c("X5", "X5_1"), delim = " ") %>%
   separate_wider_delim(cols = X7, names = c("X7", "X7_1"), delim = " ") %>%
   separate_wider_delim(cols = X8, names = c("X8", "X8_1", "x_8_2"), delim = " ") %>%
-  separate_wider_delim(cols = X12, names = c("X12", "X12_1"), delim = " ") %>%
-  separate_wider_delim(cols = X10, names = c("X10", "X10_1"), delim = " ") %>%
+  separate_wider_delim(cols = X9, names = c("X9", "X9_1", "X9_2", "X9_3", "X9_4", "X9_5"), delim = " ") %>%
+  #separate_wider_delim(cols = X10, names = c("X10", "X10_1"), delim = " ") %>%
   select(product = X1, unit = X2, 
-         "2026-08-03" = X4, 
-         "2026-08-04" = X6, 
-         "2026-08-05" = X8, 
-         "2026-08-06" = X9, 
-         "2026-08-07" = X11
+         "2026-08-24" = X4, 
+         "2026-08-25" = X6, 
+         "2026-08-26" = X8, 
+         "2026-08-27" = X9, 
+         "2026-08-28" = X9_3
          ) %>% 
   mutate(product = fct_recode(product, 'Брашно тип "500" /пакет 1 кг/' = "/пакет 1 кг/",
                               "Колбаси малотрайни /в т.ч. шунка/" = "малотрайни /в т.ч. шунка/",
