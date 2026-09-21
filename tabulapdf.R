@@ -2,27 +2,27 @@ library(tidyverse)
 library(tabulapdf)
 library(nanoparquet)
 
-link <- "https://www.dksbt.bg/doc/%D0%A1%D0%B5%D0%B4%D0%BC%D0%B8%D1%87%D0%B5%D0%BD%20%D0%B1%D1%8E%D0%BB%D0%B5%D1%82%D0%B8%D0%BD%20%2024%20%20-%2028%20%D0%B0%D0%B2%D0%B3%D1%83%D1%81%D1%82%20-2026.pdf"
+link <- "https://www.dksbt.bg/doc/%D0%A1%D0%B5%D0%B4%D0%BC%D0%B8%D1%87%D0%B5%D0%BD%20%D0%B1%D1%8E%D0%BB%D0%B5%D1%82%D0%B8%D0%BD%20%2014%20-%2018%20%D1%81%D0%B5%D0%BF%D1%82%D0%B5%D0%BC%D0%B2%D1%80%D0%B8%202026.pdf"
 
 table <- extract_tables(link, col_names = F, method = "stream", pages = 1, output = "tibble") %>% pluck(1) %>% 
   drop_na() %>% 
   separate_wider_delim(cols = X5, names = c("X5", "X5_1"), delim = " ") %>%
   separate_wider_delim(cols = X7, names = c("X7", "X7_1"), delim = " ") %>%
   separate_wider_delim(cols = X8, names = c("X8", "X8_1", "x_8_2"), delim = " ") %>%
-  separate_wider_delim(cols = X9, names = c("X9", "X9_1", "X9_2", "X9_3", "X9_4", "X9_5"), delim = " ") %>%
-  #separate_wider_delim(cols = X10, names = c("X10", "X10_1"), delim = " ") %>%
+  separate_wider_delim(cols = X10, names = c("X10", "X10_1"), delim = " ") %>%
+  separate_wider_delim(cols = X12, names = c("X12", "X12_1"), delim = " ") %>%
   select(product = X1, unit = X2, 
-         "2026-08-24" = X4, 
-         "2026-08-25" = X6, 
-         "2026-08-26" = X8, 
-         "2026-08-27" = X9, 
-         "2026-08-28" = X9_3
-         ) %>% 
+         "2026-09-14" = X4, 
+         "2026-09-15" = X6, 
+         "2026-09-16" = X8, 
+         "2026-09-17" = X9, 
+         "2026-09-18" = X11
+         ) %>%
   mutate(product = fct_recode(product, 'Брашно тип "500" /пакет 1 кг/' = "/пакет 1 кг/",
                               "Колбаси малотрайни /в т.ч. шунка/" = "малотрайни /в т.ч. шунка/",
                               "Олио /пластмасова бутилка1л/" = "/пластмасова бутилка1л/",
                               "Кисело мляко 3 и над 3% кофичка 400 г" = "кофичка 400 г",
-                              "Прясно мляко 3% кутия/бутилка 1 л" = "кутия/бутилка 1 л")) %>% 
+                              "Прясно мляко 3% кутия/бутилка 1 л" = "кутия/бутилка 1 л")) %>%
   pivot_longer(-c(product, unit)) %>%
   mutate(unit = str_remove(unit, ","), date = as.Date(name), value = str_replace(value, ",", "."),
          price = as.numeric(value)) %>% 
@@ -33,7 +33,10 @@ df_market <- bind_rows(df_market, table)
 
 write_parquet(df_market, "~/Desktop/R/shiny/markets/df_market.parquet")
 
-table %>% count(product) %>% view
+table(df_market$product)
+
+df_market <- df_market %>% 
+  mutate(product = fct_recode(product, "Захар /пакет 1кг/" = "Захар /пакет  1кг/"))
 
 table %>% print(n = Inf)
 
